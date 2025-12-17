@@ -41,6 +41,14 @@ app.use(helmet()); // Защита HTTP заголовков
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Разрешаем CORS для фронтенда
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
 // Защита от брутфорса - максимум 5 попыток за 15 минут
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -142,7 +150,7 @@ function generateToken() {
 }
 
 // Запуск сервера
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`🔒 Сервер запущен на порту ${PORT}`);
   console.log(`🌐 Сервер готов принимать запросы`);
 });
