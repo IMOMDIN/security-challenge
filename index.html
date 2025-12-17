@@ -90,6 +90,11 @@
             transform: translateY(0);
         }
 
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .message {
             margin-top: 20px;
             padding: 15px;
@@ -134,6 +139,13 @@
             color: #999;
             text-align: center;
         }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -152,9 +164,10 @@
                 <input type="password" id="password" name="password" required>
             </div>
 
-            <button type="submit">Войти</button>
+            <button type="submit" id="submitBtn">Войти</button>
         </form>
 
+        <div class="loading" id="loading">⏳ Отправка запроса...</div>
         <div id="message" class="message"></div>
         <div id="secretBox" class="secret-box"></div>
         <div class="attempts" id="attempts"></div>
@@ -165,6 +178,8 @@
         const messageBox = document.getElementById('message');
         const secretBox = document.getElementById('secretBox');
         const attemptsBox = document.getElementById('attempts');
+        const loadingBox = document.getElementById('loading');
+        const submitBtn = document.getElementById('submitBtn');
         let attemptCount = 0;
 
         form.addEventListener('submit', async (e) => {
@@ -174,16 +189,31 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
+            // Показываем загрузку
+            loadingBox.style.display = 'block';
+            submitBtn.disabled = true;
+            messageBox.style.display = 'none';
+            secretBox.style.display = 'none';
+
+            console.log('Отправка запроса...', { username });
+
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ username, password })
                 });
 
+                console.log('Ответ получен:', response.status);
+
                 const data = await response.json();
+                console.log('Данные:', data);
+
+                loadingBox.style.display = 'none';
+                submitBtn.disabled = false;
 
                 if (response.ok && data.success) {
                     showMessage('success', '✅ Успешный вход!');
@@ -195,7 +225,10 @@
 
                 attemptsBox.textContent = `Попыток входа: ${attemptCount}`;
             } catch (error) {
-                showMessage('error', '❌ Ошибка соединения с сервером');
+                console.error('Ошибка:', error);
+                loadingBox.style.display = 'none';
+                submitBtn.disabled = false;
+                showMessage('error', '❌ Ошибка соединения: ' + error.message);
             }
         });
 
@@ -214,6 +247,15 @@
             `;
             secretBox.style.display = 'block';
         }
+
+        // Тест при загрузке страницы
+        window.addEventListener('load', () => {
+            console.log('Страница загружена');
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(data => console.log('Статус API:', data))
+                .catch(e => console.error('API недоступен:', e));
+        });
     </script>
 </body>
 </html>
