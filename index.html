@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 Security Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .message.error {
+            background: #fee;
+            color: #c33;
+            border: 2px solid #fcc;
+        }
+
+        .message.success {
+            background: #efe;
+            color: #3c3;
+            border: 2px solid #cfc;
+        }
+
+        .secret-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .secret-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .secret-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .attempts {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Security Challenge</h1>
+        <p class="subtitle">Попробуйте взломать эту систему</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Логин</label>
+                <input type="text" id="username" name="username" required autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit">Войти</button>
+        </form>
+
+        <div id="message" class="message"></div>
+        <div id="secretBox" class="secret-box"></div>
+        <div class="attempts" id="attempts"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const messageBox = document.getElementById('message');
+        const secretBox = document.getElementById('secretBox');
+        const attemptsBox = document.getElementById('attempts');
+        let attemptCount = 0;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            attemptCount++;
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showMessage('success', '✅ Успешный вход!');
+                    showSecret(data.user);
+                } else {
+                    showMessage('error', '❌ ' + (data.error || 'Ошибка входа'));
+                    secretBox.style.display = 'none';
+                }
+
+                attemptsBox.textContent = `Попыток входа: ${attemptCount}`;
+            } catch (error) {
+                showMessage('error', '❌ Ошибка соединения с сервером');
+            }
+        });
+
+        function showMessage(type, text) {
+            messageBox.className = `message ${type}`;
+            messageBox.textContent = text;
+            messageBox.style.display = 'block';
+        }
+
+        function showSecret(user) {
+            secretBox.innerHTML = `
+                <h3>🎉 Доступ получен!</h3>
+                <p><strong>Пользователь:</strong> ${user.username}</p>
+                <p><strong>Роль:</strong> ${user.role}</p>
+                <p><strong>Секрет:</strong> ${user.secret}</p>
+            `;
+            secretBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
