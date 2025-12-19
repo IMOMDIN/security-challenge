@@ -1,156 +1,119 @@
 const express = require('express');
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
-const fs = require('fs');
-const path = require('path');
-
+const session = require('express-session');
+const bcrypt = require('bcrypt');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// Инициализация базы данных
-let db;
-try {
-  db = JSON.parse(fs.readFileSync('database.json', 'utf8'));
-  console.log('✅ База данных загружена');
-} catch (error) {
-  console.log('⚠️ Создание новой базы данных...');
-  db = {
-    "users": [
-      {
-        "id": 1,
-        "username": "admin",
-        "password": "SecurePass123!",
-        "role": "admin",
-        "secret": "Флаг: FLAG{you_hacked_the_admin}"
-      },
-      {
-        "id": 2,
-        "username": "user",
-        "password": "User2024",
-        "role": "user",
-        "secret": "Обычный пользователь, секретов нет"
-      }
-    ],
-    "sessions": [],
-    "loginAttempts": {}
-  };
-}
+// Хранилище для блокировок (в реальном проекте используйте БД)
+const failedAttempts = new Map();
 
-// Middleware для защиты
-app.use(helmet()); // Защита HTTP заголовков
+// Предустановленный пользователь (логин: admin, пароль: password123)
+const users = [{
+  username: 'admin',
+  // Хэш пароля "password123"
+  passwordHash: '$2b$10$K7VqB5h2W5ZQhZQhV8n8XeB0nV8mR5pZQhZQhV8n8XeB0nV8mR5pZQ'
+}];
+
+app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  secret: 'secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // true для HTTPS
+}));
 
-// Разрешаем CORS для фронтенда
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
-
-// Защита от брутфорса - максимум 5 попыток за 15 минут
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { error: 'Слишком много попыток входа. Попробуйте через 15 минут.' }
-});
-
-// Отдача главной страницы
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// API для входа
-app.post('/api/login', loginLimiter, (req, res) => {
-  const { username, password } = req.body;
-
-  // Валидация входных данных
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Логин и пароль обязательны' });
-  }
-
-  // Защита от SQL-инъекций (санитизация)
-  const cleanUsername = username.replace(/[<>\"']/g, '');
-  const cleanPassword = password.replace(/[<>\"']/g, '');
-
-  // Проверка длины (защита от переполнения)
-  if (cleanUsername.length > 50 || cleanPassword.length > 50) {
-    return res.status(400).json({ error: 'Логин или пароль слишком длинный' });
-  }
-
-  // Поиск пользователя
-  const user = db.users.find(u => u.username === cleanUsername);
-
-  if (!user) {
-    return res.status(401).json({ error: 'Неверный логин или пароль' });
-  }
-
-  // Проверка пароля
-  if (user.password !== cleanPassword) {
-    // Логирование попытки взлома
-    const ip = req.ip || 'unknown';
-    if (!db.loginAttempts[ip]) {
-      db.loginAttempts[ip] = [];
-    }
-    db.loginAttempts[ip].push({
-      username: cleanUsername,
-      time: new Date().toISOString()
-    });
-    
-    // Сохранение в базу (если возможно)
-    try {
-      fs.writeFileSync('database.json', JSON.stringify(db, null, 2));
-    } catch (e) {
-      console.log('⚠️ Не удалось сохранить попытку входа');
-    }
-
-    return res.status(401).json({ error: 'Неверный логин или пароль' });
-  }
-
-  // Успешный вход - создание сессии
-  const sessionToken = generateToken();
-  db.sessions.push({
-    token: sessionToken,
-    userId: user.id,
-    createdAt: new Date().toISOString()
-  });
+// Проверка блокировки
+function isBlocked(ip) {
+  const data = failedAttempts.get(ip);
+  if (!data) return false;
   
-  // Сохранение в базу (если возможно)
-  try {
-    fs.writeFileSync('database.json', JSON.stringify(db, null, 2));
-  } catch (e) {
-    console.log('⚠️ Не удалось сохранить сессию');
-  }
-
-  res.json({
-    success: true,
-    token: sessionToken,
-    user: {
-      username: user.username,
-      role: user.role,
-      secret: user.secret
+  if (data.attempts >= 5) {
+    const now = Date.now();
+    const blockTime = 15 * 60 * 1000; // 15 минут в мс
+    
+    if (now - data.lastAttempt < blockTime) {
+      return true;
+    } else {
+      // Сброс после 15 минут
+      failedAttempts.delete(ip);
+      return false;
     }
-  });
-});
-
-// API для проверки статуса (для отладки)
-app.get('/api/status', (req, res) => {
-  res.json({
-    status: 'online',
-    users: db.users.length,
-    sessions: db.sessions.length,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Генерация случайного токена
-function generateToken() {
-  return Math.random().toString(36).substr(2) + Date.now().toString(36);
+  }
+  return false;
 }
 
-// Запуск сервера
+// Главная страница
+app.get('/', (req, res) => {
+  if (req.session.isAuth) {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+// Страница dashboard
+app.get('/dashboard', (req, res) => {
+  if (!req.session.isAuth) {
+    return res.redirect('/');
+  }
+  res.sendFile(__dirname + '/public/dashboard.html');
+});
+
+// API для логина
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  const ip = req.ip;
+  
+  // Проверка блокировки
+  if (isBlocked(ip)) {
+    const data = failedAttempts.get(ip);
+    const blockTime = 15 * 60 * 1000;
+    const timeLeft = Math.ceil((blockTime - (Date.now() - data.lastAttempt)) / 1000 / 60);
+    return res.status(429).json({ 
+      error: `Аккаунт заблокирован. Попробуйте через ${timeLeft} минут` 
+    });
+  }
+  
+  // Поиск пользователя
+  const user = users.find(u => u.username === username);
+  
+  if (user && bcrypt.compareSync(password, user.passwordHash)) {
+    // Успешный вход
+    req.session.isAuth = true;
+    req.session.username = username;
+    failedAttempts.delete(ip); // Сброс попыток
+    return res.json({ success: true });
+  }
+  
+  // Неудачная попытка
+  if (!failedAttempts.has(ip)) {
+    failedAttempts.set(ip, { attempts: 1, lastAttempt: Date.now() });
+  } else {
+    const data = failedAttempts.get(ip);
+    data.attempts++;
+    data.lastAttempt = Date.now();
+  }
+  
+  const attemptsLeft = 5 - failedAttempts.get(ip).attempts;
+  
+  if (attemptsLeft <= 0) {
+    res.status(429).json({ 
+      error: 'Слишком много попыток. Аккаунт заблокирован на 15 минут.' 
+    });
+  } else {
+    res.status(401).json({ 
+      error: `Неверные данные. Осталось попыток: ${attemptsLeft}` 
+    });
+  }
+});
+
+// Выход
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/');
+});
+
 app.listen(PORT, () => {
-  console.log(`🔒 Сервер запущен на порту ${PORT}`);
-  console.log(`🌐 Сервер готов принимать запросы`);
+  console.log(`Сервер запущен: http://localhost:${PORT}`);
 });
