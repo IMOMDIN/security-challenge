@@ -3,274 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель управления</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>📊 Панель управления</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            border-radius: 15px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .avatar {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(to right, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-        }
-        
-        .user-details h1 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .user-details p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .btn-logout {
-            padding: 12px 25px;
-            background: linear-gradient(to right, #ff6b6b, #ff8e8e);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-logout:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
-        }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            font-size: 30px;
-            color: white;
-        }
-        
-        .card:nth-child(1) .card-icon {
-            background: linear-gradient(to right, #667eea, #764ba2);
-        }
-        
-        .card:nth-child(2) .card-icon {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-        }
-        
-        .card:nth-child(3) .card-icon {
-            background: linear-gradient(to right, #43e97b, #38f9d7);
-        }
-        
-        .card h2 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 22px;
-        }
-        
-        .card p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        
-        .security-info {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
-        }
-        
-        .security-info h2 {
-            color: #333;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .security-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .security-item i {
-            color: #28a745;
-            font-size: 20px;
-            margin-right: 15px;
-        }
-        
-        .footer {
-            text-align: center;
-            color: white;
-            padding: 20px;
-            font-size: 14px;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            display: none;
-        }
-        
-        .alert-error {
-            background: #fee;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .header p { color: #666; }
+        .dashboard { background: white; border-radius: 10px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; }
+        .success-icon { font-size: 50px; color: #2ecc71; margin-bottom: 20px; }
+        .message { color: #555; margin-bottom: 30px; font-size: 18px; line-height: 1.5; }
+        .btn { padding: 12px 25px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #5a6fd8; }
+        .btn-logout { background: #e74c3c; }
+        .btn-logout:hover { background: #c0392b; }
+        .alert { padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .alert-error { background: #fee; color: #721c24; border: 1px solid #f5c6cb; }
+        .info-box { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-top: 20px; text-align: left; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="user-info">
-                <div class="avatar">
-                    <i class="fas fa-user-shield"></i>
-                </div>
-                <div class="user-details">
-                    <h1 id="username">Администратор</h1>
-                    <p><i class="fas fa-clock"></i> Последний вход: <span id="lastLogin">Только что</span></p>
-                </div>
-            </div>
-            <button class="btn-logout" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i> Выйти
-            </button>
+            <h1>📊 Панель управления</h1>
+            <p>Добро пожаловать в защищённую зону</p>
         </div>
         
-        <div class="alert alert-error" id="errorAlert"></div>
+        <div class="alert alert-error" id="errorAlert" style="display: none;"></div>
         
-        <div class="dashboard-grid">
-            <div class="card">
-                <div class="card-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h2>Защита аккаунта</h2>
-                <p>Ваш аккаунт защищен системой блокировки после 5 неудачных попыток входа.</p>
-                <p><strong>Текущий статус:</strong> <span id="securityStatus" style="color: #28a745;">Активен и защищен</span></p>
+        <div class="dashboard">
+            <div class="success-icon">✅</div>
+            <h1>Авторизация успешна!</h1>
+            <div class="message">
+                Вы успешно вошли в систему.<br>
+                Это защищённая страница, доступная только после правильной авторизации.
             </div>
             
-            <div class="card">
-                <div class="card-icon">
-                    <i class="fas fa-server"></i>
-                </div>
-                <h2>Информация о системе</h2>
-                <p>Система работает на платформе Vercel с использованием serverless-функций.</p>
-                <p><strong>Хостинг:</strong> Vercel</p>
-                <p><strong>Статус API:</strong> <span id="apiStatus" style="color: #28a745;">Работает</span></p>
-            </div>
+            <button class="btn" onclick="window.location.href='/'">← На главную</button>
+            <button class="btn btn-logout" onclick="logout()">Выйти из системы</button>
             
-            <div class="card">
-                <div class="card-icon">
-                    <i class="fas fa-history"></i>
-                </div>
-                <h2>История входа</h2>
-                <p>Система отслеживает количество попыток входа. При превышении лимита доступ блокируется на 15 минут.</p>
-                <p><strong>Ваши попытки:</strong> <span id="userAttempts">0 неудачных попыток</span></p>
+            <div class="info-box">
+                <h3>Информация о системе:</h3>
+                <p>• Система блокировки: активна (5 попыток → 15 минут блокировки)</p>
+                <p>• Хостинг: Vercel Serverless</p>
+                <p>• Защита: bcrypt + cookies</p>
+                <p>• Статус: <span style="color: #2ecc71;">Работает нормально</span></p>
             </div>
-        </div>
-        
-        <div class="security-info">
-            <h2><i class="fas fa-lock"></i> Безопасность сессии</h2>
-            <div class="security-item">
-                <i class="fas fa-check-circle"></i>
-                <div>
-                    <strong>Авторизация успешна</strong>: Вы доказали что знаете правильный логин и пароль.
-                </div>
-            </div>
-            <div class="security-item">
-                <i class="fas fa-check-circle"></i>
-                <div>
-                    <strong>Блокировка при атаках</strong>: После 5 неудачных попыток система блокирует дальнейшие попытки на 15 минут.
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>© 2024 Система авторизации на Vercel | <i class="fas fa-heart"></i> Защищенное приложение</p>
         </div>
     </div>
-    
+
     <script>
-        // Простой скрипт для dashboard
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            if (confirm('Вы уверены что хотите выйти?')) {
+        // Проверяем авторизацию при загрузке
+        checkAuth();
+        
+        async function checkAuth() {
+            try {
+                // Проверяем есть ли кука
+                const cookies = document.cookie.split(';').some(cookie => 
+                    cookie.trim().startsWith('auth_token=')
+                );
+                
+                if (!cookies) {
+                    // Нет авторизации - перенаправляем на главную
+                    window.location.href = '/';
+                    return;
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
                 window.location.href = '/';
             }
-        });
+        }
         
-        // Обновляем время последнего входа
-        document.getElementById('lastLogin').textContent = 
-            new Date().toLocaleTimeString('ru-RU', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout');
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    document.getElementById('errorAlert').textContent = 'Ошибка при выходе';
+                    document.getElementById('errorAlert').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = 'Ошибка соединения';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>
