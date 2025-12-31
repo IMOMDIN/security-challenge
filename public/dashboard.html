@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Панель управления - Vercel</title>
+    <title>Панель управления</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -185,18 +185,6 @@
             border: 1px solid #f5c6cb;
             color: #721c24;
         }
-        
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-            
-            .user-info {
-                flex-direction: column;
-            }
-        }
     </style>
 </head>
 <body>
@@ -224,7 +212,7 @@
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <h2>Защита аккаунта</h2>
-                <p>Ваш аккаунт защищен системой блокировки после 5 неудачных попыток входа. Токен авторизации действителен 1 час.</p>
+                <p>Ваш аккаунт защищен системой блокировки после 5 неудачных попыток входа.</p>
                 <p><strong>Текущий статус:</strong> <span id="securityStatus" style="color: #28a745;">Активен и защищен</span></p>
             </div>
             
@@ -233,7 +221,7 @@
                     <i class="fas fa-server"></i>
                 </div>
                 <h2>Информация о системе</h2>
-                <p>Система работает на платформе Vercel с использованием serverless-функций. Аутентификация реализована через JWT токены.</p>
+                <p>Система работает на платформе Vercel с использованием serverless-функций.</p>
                 <p><strong>Хостинг:</strong> Vercel</p>
                 <p><strong>Статус API:</strong> <span id="apiStatus" style="color: #28a745;">Работает</span></p>
             </div>
@@ -253,13 +241,7 @@
             <div class="security-item">
                 <i class="fas fa-check-circle"></i>
                 <div>
-                    <strong>JWT Токен</strong>: Используется для безопасной аутентификации без хранения состояния на сервере.
-                </div>
-            </div>
-            <div class="security-item">
-                <i class="fas fa-check-circle"></i>
-                <div>
-                    <strong>HttpOnly Куки</strong>: Токен хранится в защищенных куках, недоступных JavaScript.
+                    <strong>Авторизация успешна</strong>: Вы доказали что знаете правильный логин и пароль.
                 </div>
             </div>
             <div class="security-item">
@@ -275,6 +257,20 @@
         </div>
     </div>
     
-    <script src="/_app.js"></script>
+    <script>
+        // Простой скрипт для dashboard
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if (confirm('Вы уверены что хотите выйти?')) {
+                window.location.href = '/';
+            }
+        });
+        
+        // Обновляем время последнего входа
+        document.getElementById('lastLogin').textContent = 
+            new Date().toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+    </script>
 </body>
 </html>
