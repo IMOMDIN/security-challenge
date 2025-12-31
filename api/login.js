@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
     
     console.log('🔑 Received:', { username, password });
     
-    // Тестовый пользователь
+    // Тестовый пользователь (скрытый)
     const users = [{
       username: 'admin',
       passwordHash: '$2a$10$K7VqB5h2W5ZQhZQhV8n8XeB0nV8mR5pZQhZQhV8n8XeB0nV8mR5pZQ'
@@ -23,11 +23,11 @@ module.exports = async (req, res) => {
     
     const user = users.find(u => u.username === username);
     
-    // ПРОСТАЯ ПРОВЕРКА
+    // Простая проверка для теста
     if (username === 'admin' && password === 'password123') {
       console.log('✅ Login successful');
       
-      // Устанавливаем простую куку для сессии
+      // Устанавливаем куку для сессии
       res.setHeader('Set-Cookie', serialize('auth', 'true', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ 
         success: true,
         message: 'Вход выполнен успешно!',
-        redirect: '/dashboard.html'  // Перенаправляем на dashboard.html
+        redirect: '/dashboard.html'
       });
     }
     
@@ -61,9 +61,11 @@ module.exports = async (req, res) => {
     }
     
     console.log('❌ Invalid credentials');
+    
+    // ВОТ ЭТА СТРОКА ВАЖНА - БЕЗ ТЕСТОВЫХ ДАННЫХ:
     return res.status(401).json({ 
       error: 'Неверные данные',
-      message: 'Используйте: admin / password123'
+      message: 'Проверьте логин и пароль'
     });
     
   } catch (error) {
