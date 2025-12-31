@@ -5,152 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔐 Авторизация</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .container { background: white; border-radius: 10px; padding: 30px; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        h1 { text-align: center; margin-bottom: 20px; color: #333; }
-        input, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        button { background: #667eea; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #5a6fd8; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .alert { padding: 12px; border-radius: 5px; margin-bottom: 15px; display: none; }
-        .error { background: #fee; color: #721c24; border: 1px solid #f5c6cb; }
-        .success { background: #dfd; color: #155724; border: 1px solid #c3e6cb; }
-        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; margin-top: 20px; padding: 15px; font-size: 14px; text-align: center; }
-        .loading { text-align: center; color: #666; font-size: 14px; margin: 10px 0; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .error {
+            background: #fee;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .success {
+            background: #dfd;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔐 Вход в систему</h1>
         
-        <div class="alert warning" id="attemptsAlert" style="display: none;">
-            <span id="attemptsText"></span>
-        </div>
-        
         <div class="alert error" id="errorAlert"></div>
         <div class="alert success" id="successAlert"></div>
         
         <form id="loginForm">
-            <input type="text" id="username" placeholder="Логин" required autocomplete="username">
-            <input type="password" id="password" placeholder="Пароль" required autocomplete="current-password">
+            <input type="text" id="username" placeholder="Логин" required>
+            <input type="password" id="password" placeholder="Пароль" required>
             <button type="submit" id="submitBtn">Войти</button>
         </form>
         
         <div class="info">
-            <strong>Система безопасности:</strong><br>
-            После 5 неудачных попыток аккаунт блокируется на 15 минут
+            Система безопасности: блокировка после 5 неудачных попыток
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('loginForm');
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             const errorAlert = document.getElementById('errorAlert');
             const successAlert = document.getElementById('successAlert');
-            const attemptsAlert = document.getElementById('attemptsAlert');
-            const attemptsText = document.getElementById('attemptsText');
             const submitBtn = document.getElementById('submitBtn');
             
-            // Проверяем попытки при загрузке
-            checkAttempts();
+            // Скрываем предыдущие сообщения
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'none';
             
-            // Обработка формы
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
+            if (!username || !password) {
+                showError('Заполните все поля');
+                return;
+            }
+            
+            // Показываем загрузку
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Проверка...';
+            
+            try {
+                console.log('Отправка запроса...');
                 
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value;
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
                 
-                // Скрываем алерты
-                errorAlert.style.display = 'none';
-                successAlert.style.display = 'none';
-                attemptsAlert.style.display = 'none';
+                console.log('Ответ получен:', response.status);
                 
-                if (!username || !password) {
-                    showError('Заполните все поля');
-                    return;
-                }
+                const data = await response.json();
+                console.log('Данные ответа:', data);
                 
-                // Показываем загрузку
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Проверка...';
-                
-                try {
-                    const response = await fetch('/api/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
+                if (response.ok && data.success) {
+                    // Успешный вход
+                    showSuccess(data.message || 'Вход выполнен!');
                     
-                    const data = await response.json();
-                    
-                    if (response.ok && data.success) {
-                        // Успешный вход
-                        showSuccess(data.message || 'Вход выполнен! Перенаправление...');
-                        
-                        // Перенаправляем через 1.5 секунды
+                    // Перенаправляем
+                    if (data.redirect) {
                         setTimeout(() => {
-                            window.location.href = data.redirect || '/dashboard.html';
+                            window.location.href = data.redirect;
                         }, 1500);
-                        
                     } else {
-                        // Ошибка входа
-                        if (data.blocked) {
-                            showError(data.message || 'Аккаунт заблокирован');
-                            attemptsText.textContent = data.message;
-                            attemptsAlert.style.display = 'block';
-                        } else if (data.attemptsLeft !== undefined) {
-                            showError(data.message || 'Неверные данные');
-                            attemptsText.textContent = `Осталось попыток: ${data.attemptsLeft}`;
-                            attemptsAlert.style.display = 'block';
-                        } else {
-                            showError(data.message || data.error || 'Ошибка авторизации');
-                        }
+                        setTimeout(() => {
+                            window.location.href = '/dashboard.html';
+                        }, 1500);
                     }
-                } catch (error) {
-                    showError('Ошибка соединения с сервером');
-                    console.error('Login error:', error);
-                } finally {
-                    // Восстанавливаем кнопку
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Войти';
+                    
+                } else {
+                    // Ошибка входа
+                    showError(data.message || data.error || 'Ошибка авторизации');
                 }
-            });
-            
-            // Функции для отображения сообщений
-            function showError(message) {
-                errorAlert.textContent = message;
-                errorAlert.style.display = 'block';
-            }
-            
-            function showSuccess(message) {
-                successAlert.textContent = message;
-                successAlert.style.display = 'block';
-            }
-            
-            // Проверка попыток
-            async function checkAttempts() {
-                try {
-                    const response = await fetch('/api/attempts');
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.attempts > 0) {
-                            if (data.blocked) {
-                                attemptsText.textContent = 'Аккаунт заблокирован. Попробуйте позже.';
-                                attemptsAlert.style.display = 'block';
-                            } else if (data.attemptsLeft > 0) {
-                                attemptsText.textContent = `У вас осталось ${data.attemptsLeft} попыток из 5`;
-                                attemptsAlert.style.display = 'block';
-                            }
-                        }
-                    }
-                } catch (error) {
-                    // Игнорируем ошибку
-                }
+                
+            } catch (error) {
+                console.error('Ошибка запроса:', error);
+                showError('Ошибка соединения с сервером');
+            } finally {
+                // Восстанавливаем кнопку
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Войти';
             }
         });
+        
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+        }
+        
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+        }
+        
+        // Тестовые данные для разработчика (в консоли)
+        console.log('Тестовые данные: admin / password123');
     </script>
 </body>
 </html>
